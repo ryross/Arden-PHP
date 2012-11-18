@@ -5,10 +5,56 @@ class Arden_Repository_KohanaDatabase
 	protected $_model_class;
 	protected $_table_name;
 
-	protected $_qb_select;
-	protected $_qb_insert;
-	protected $_qb_update;
-	protected $_qb_delete;
+	private $_qb_select;
+	private $_qb_insert;
+	private $_qb_update;
+	private $_qb_delete;
+
+	protected $rules;
+
+	/**
+	 * @return Database_Query_Builder_Select
+	 */
+	protected function new_select()
+	{
+		return clone $this->_qb_select;
+	}
+
+	/**
+	 * @return Database_Query_Builder_Insert
+	 */
+	protected function new_insert()
+	{
+		return clone $this->_qb_insert;
+	}
+
+	/**
+	 * @return Database_Query_Builder_Update
+	 */
+	protected function new_update()
+	{
+		return clone $this->_qb_update;
+	}
+
+	/**
+	 * @return Database_Query_Builder_Delete
+	 */
+	protected function new_delete()
+	{
+		return clone $this->_qb_delete;
+	}
+
+	protected function as_array($repository_results)
+	{
+		$results = [];
+
+		foreach ($repository_results as $result)
+		{
+			$results[] = $result;
+		}
+
+		return $results;
+	}
 
 	public function __construct($database, $qb_select, $qb_insert, $qb_update, $qb_delete, $model_class = NULL, $table_name = NULL)
 	{
@@ -28,13 +74,15 @@ class Arden_Repository_KohanaDatabase
 		$this->_qb_insert = $qb_insert;
 		$this->_qb_update = $qb_update;
 		$this->_qb_delete = $qb_delete;
+
+		$this->initialize();
 	}
 
 	public function load_object(array $parameters, $select = NULL)
 	{
 		if ($select === NULL)
 		{
-			$select = clone $this->_qb_select;
+			$select = $this->new_select();
 		}
 		$select->from($this->_table_name);
 		$select->as_object($this->_model_class);
@@ -50,7 +98,7 @@ class Arden_Repository_KohanaDatabase
 	{
 		if ($select === NULL)
 		{
-			$select = clone $this->_qb_select;
+			$select = $this->new_select();
 		}
 		$select->from($this->_table_name);
 		$select->as_object($this->_model_class);
@@ -90,7 +138,7 @@ class Arden_Repository_KohanaDatabase
 
 		if ($insert === NULL)
 		{
-			$insert = clone $this->_qb_insert;
+			$insert = $this->new_insert();
 		}
 		$object->id = $insert->table($this->_table_name)->columns($columns)->values($values)->execute($this->_database)[0];
 
@@ -114,9 +162,9 @@ class Arden_Repository_KohanaDatabase
 
 		if ($update === NULL)
 		{
-			$update = clone $this->_qb_update;
+			$update = $this->new_update();
 		}
-		$updated = $update->table($this->_table_name)->where('id', '=', $object->id)->set($set)->execute($this->_database);
+		$update->table($this->_table_name)->where('id', '=', $object->id)->set($set)->execute($this->_database);
 
 		return $object;
 	}
@@ -130,8 +178,30 @@ class Arden_Repository_KohanaDatabase
 
 		if ($delete === NULL)
 		{
-			$delete = clone $this->_qb_delete;
+			$delete = $this->new_delete();
 		}
 		return (bool) $delete->table($this->_table_name)->where('id', '=', $object->id)->execute($this->_database);
 	}
+
+	/**
+	 * Override to provide extra initialization such as $rules.
+	 */
+	protected function initialize(){}
+
+	/**
+	 * @param $data array to be validated.
+	 * @return Validation
+	 */
+	public function validation($data)
+	{
+		$validation = Validation::factory($data);
+
+		foreach($this->rules as $field => $field_rules)
+		{
+			$validation->rules($field, $field_rules);
+		}
+
+		return $validation;
+	}
+
 }
