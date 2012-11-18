@@ -46,7 +46,7 @@ class Arden_Repository_KohanaDatabase
 
 	protected function as_array($repository_results)
 	{
-		$results = [];
+		$results = array();
 
 		foreach ($repository_results as $result)
 		{
@@ -110,7 +110,7 @@ class Arden_Repository_KohanaDatabase
 			}
 		}
 
-		$results = [];
+		$results = array();
 		foreach ($select->execute($this->_database) as $model)
 		{
 			$results[] = $model;
@@ -128,8 +128,8 @@ class Arden_Repository_KohanaDatabase
 
 		$reflection = new ReflectionClass($object);
 		$properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
-		$columns = [];
-		$values = [];
+		$columns = array();
+		$values = array();
 		foreach ($properties as $p)
 		{
 			$columns[] = $p->getName();
@@ -140,7 +140,8 @@ class Arden_Repository_KohanaDatabase
 		{
 			$insert = $this->new_insert();
 		}
-		$object->id = $insert->table($this->_table_name)->columns($columns)->values($values)->execute($this->_database)[0];
+		$result = $insert->table($this->_table_name)->columns($columns)->values($values)->execute($this->_database);
+		$object->id = $result[0];
 
 		return $object;
 	}
@@ -154,7 +155,7 @@ class Arden_Repository_KohanaDatabase
 
 		$reflection = new ReflectionClass($object);
 		$properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
-		$set = [];
+		$set = array();
 		foreach ($properties as $p)
 		{
 			$set[$p->getName()] = $object->{$p->getName()};

@@ -90,14 +90,14 @@ class DescribeKohanaDatabase extends \PHPSpec\Context
 
 
 
-		$users = $this->repo->load_set([
-			['id' => 1],
-			['id' => 2],
-		]);
+		$users = $this->repo->load_set(array(
+			array('id' => 1),
+			array('id' => 2),
+		));
 		$this->spec($users)->should->be(
-			[
+			array(
 				$user1, $user2
-			]
+			)
 		);
 	}
 
